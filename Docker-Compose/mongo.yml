@@ -1,0 +1,51 @@
+# docker compose -f ./mongo.yml -p mongo up -d
+
+version: '3.8'
+
+networks:
+  devnet:
+    external: true
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+       - 27017:27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - devnet
+
+  mongo_exporter:
+    image: gpuliyar/mongo-exporter
+    container_name: mongo-exporter
+    restart: 'always'
+    ports:
+      - 9001:9001
+    environment:
+      - 'MONGO_SERVICE=mongodb'
+      - 'MONGO_PORT=27017'
+    depends_on:
+      - mongo
+    networks:
+      - devnet
+
+  mongo_query_exporter:
+    image: ghcr.io/raffis/mongodb-query-exporter:v1.0.0
+    container_name: mongo-query-exporter
+    restart: 'always'
+    ports:
+      - 9412:9412
+    volumes:
+      - ./mongodb_query_exporter/:/etc/mongodb_query_exporter/
+    environment:
+      - 'MDBEXPORTER_MONGODB_URI=mongodb://mongodb:27017'
+      - 'MDBEXPORTER_LOG_ENCODING=json'
+      - 'MDBEXPORTER_CONFIG=/etc/mongodb_query_exporter/config.yaml'
+    networks:
+      - devnet
