@@ -10,6 +10,7 @@ services:
   mongo:
     image: mongo:latest
     container_name: mongodb
+    restart: "unless-stopped"
     ports:
        - 27017:27017
     healthcheck:
@@ -24,7 +25,7 @@ services:
   mongo_exporter:
     image: gpuliyar/mongo-exporter
     container_name: mongo-exporter
-    restart: 'always'
+    restart: "unless-stopped"
     ports:
       - 9001:9001
     environment:
@@ -38,7 +39,7 @@ services:
   mongo_query_exporter:
     image: ghcr.io/raffis/mongodb-query-exporter:v1.0.0
     container_name: mongo-query-exporter
-    restart: 'always'
+    restart: "unless-stopped"
     ports:
       - 9412:9412
     volumes:

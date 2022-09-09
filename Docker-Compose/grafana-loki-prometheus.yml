@@ -14,6 +14,7 @@ services:
   loki:
     container_name: loki
     image: grafana/loki:latest
+    restart: "unless-stopped"
     ports:
        - 3100:3100
     command: -config.file=/etc/loki/local-config.yaml
@@ -30,12 +31,16 @@ services:
     container_name: grafana
     image: grafana/grafana:latest
     user: '472'
-    restart: always
+    restart: "unless-stopped"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/:/etc/grafana/provisioning/
     ports:
       - 3000:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.entrypoints=web"
     environment:
       GF_INSTALL_PLUGINS: 'grafana-clock-panel,grafana-simple-json-datasource'
     env_file:
@@ -49,7 +54,7 @@ services:
   prometheus:
     container_name: prometheus
     image: prom/prometheus:latest
-    restart: always
+    restart: "unless-stopped"
     volumes:
       - ./prometheus:/etc/prometheus/
       - prometheus_data:/prometheus
@@ -60,6 +65,10 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
     ports:
       - 9090:9090
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+      - "traefik.http.routers.prometheus.entrypoints=web"
     depends_on:
       - cadvisor
     networks:
@@ -67,18 +76,24 @@ services:
 
   cadvisor:
     container_name: cadvisor
-    # I'm not using the official image because an issue with Apple M1 (ARM) 
+    # I'm not using the official image because an issue with Apple M1 (ARM)
     # see here https://github.com/google/cadvisor/issues/1236
     image: zcube/cadvisor:latest
+    restart: "unless-stopped"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /var/run/docker.sock:/var/run/docker.sock:rw
+    command:
+    - "--port=8081"
     ports:
-      - 8080:8080
-    restart: always
+      - 8081:8081
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cadvisor.tls=false"
+      - "traefik.http.routers.cadvisor.rule=Host(`cadvisor.localhost`)"
     deploy:
       mode: global
     networks:
@@ -87,7 +102,7 @@ services:
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
-    restart: unless-stopped
+    restart: "unless-stopped"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -107,9 +122,13 @@ services:
   alertmanager:
     container_name: alertmanager
     image: prom/alertmanager:latest
-    restart: always
+    restart: "unless-stopped"
     ports:
       - 9093:9093
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alertmanager.tls=false"
+      - "traefik.http.routers.alertmanager.rule=Host(`alertmanager.localhost`)"
     volumes:
       - ./alertmanager/:/etc/alertmanager/
     command:

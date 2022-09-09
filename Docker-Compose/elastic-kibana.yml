@@ -14,6 +14,7 @@ services:
   elastic_search:
     image: elasticsearch:8.3.3
     container_name: elasticsearch
+    restart: "unless-stopped"
     environment:
       - "discovery.type=single-node"
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
@@ -34,13 +35,17 @@ services:
     ports:
       - 9200:9200
       - 9300:9300
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.elastic_search.rule=Host(`elasticsearch.localhost`)"
+      - "traefik.http.routers.elastic_search.entrypoints=web"
     networks:
       - devnet
 
   elastic_search_exporter:
     image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
     container_name: elastic_search-exporter
-    restart: 'always'
+    restart: "unless-stopped"
     ports:
       - 9114:9114
     command:
@@ -50,9 +55,26 @@ services:
     networks:
       - devnet
 
+  elastichq:
+    hostname: elastichq
+    container_name: elastichq
+    restart: "unless-stopped"
+    image: "elastichq/elasticsearch-hq"
+    ports:
+      - 4000:5000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.elastichq.rule=Host(`elastichq.localhost`)"
+      - "traefik.http.routers.elastichq.entrypoints=web"
+    depends_on:
+      - elastic_search
+    networks:
+      - devnet
+
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.3.3
     container_name: kibana
+    image: docker.elastic.co/kibana/kibana:8.3.3
+    restart: "unless-stopped"
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
       bootstrap.memory_lock: true
@@ -63,8 +85,11 @@ services:
       # XPACK_WATCHER_ENABLED: false
     ports:
       - 5601:5601
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kibana.tls=false"
+      - "traefik.http.routers.kibana.rule=Host(`kibana.localhost`)"
     depends_on:
       - elastic_search
-    restart: "unless-stopped"
     networks:
       - devnet

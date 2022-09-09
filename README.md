@@ -10,7 +10,7 @@ Usually I work with a stack composed by several external services:
 
 - MongoDb
 - Redis
-- Elastic Search + Kibana
+- Elastic Search + Kibana + ElasticHQ + Cerebro
 - Grafana + Loki for logging
 - Grafana + Prometheus for monitoring
 
@@ -20,6 +20,19 @@ The only thing to do is run this command
 ```bash
 > ./install.sh
 ```
+
+## Resource endpoints:## Resource endpoints:
+
+| Service | Mapped Domain  | Direct Url  |
+| ------------ | ------------ | ------------ |
+| ElasticSearch  | http://elasticsearch.localhost/  | localhost: http://localhost:9200  |
+| Kibana | http://kibana.localhost/  | http://localhost:5601  |
+| ElasticHq  | http://elastichq.localhost/  | http://localhost:4000  |
+| Grafana  |  http://grafana.localhost/ | http://localhost:3000  |
+| Prometheus  |  http://prometheus.localhost/ | http://localhost:9090  |
+| AlertManager  |  http://alertmanager.localhost/ | http://localhost:9093 |
+| cAdvisor  |  http://cadvisor.localhost/ | http://localhost:8081  |
+| Traefik Dashboard  |  http://localhost:8080/dashboard/ |  |
 
 > **WARNING**, these configurations are for local development, they **SHOULD NOT BE USED IN PRODUCTION** as some security settings are disabled for convenience
 
@@ -59,11 +72,6 @@ This command install Elastic Search 8.3.3, Kibana 8.3.3 and the needed exporters
 > docker compose -f ./elastic-kibana.yml -p elastic-kibana up -d
 ```
 
-When everything is up and running, you can access in this way:
-
-- Elastic Search on [http://localhost:9200](http://localhost:9200)
-- Kibana on [http://localhost:5601](http://localhost:5601)
-
 ### Grafana + Loki + Prometheys
 
 This command install Grafana, Loki, Prometheus, Alert Manager and a bunch of exporters.
@@ -71,13 +79,6 @@ This command install Grafana, Loki, Prometheus, Alert Manager and a bunch of exp
 ```bash
 > docker compose -f ./grafana-loki-prometheus.yml -p grafana-loki-prometheus up -d
 ```
-
-When everything is up and running, you can access in this way:
-
-- Grafana on [http://localhost:3000](http://localhost:3000)
-- Prometheus on [http://localhost:9090](http://localhost:9090)
-- AlertManager on [http://localhost:9093](http://localhost:9093)
-- cAdvisor on [http://localhost:8080/](http://localhost:8080/)
 
 When everything is up and running, you docker desktop should look like this
 

@@ -1,0 +1,40 @@
+# docker compose -f ./ingress.yml -p ingress up -d
+
+version: '3.8'
+
+networks:
+  devnet:
+    external: true
+
+
+services:
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    restart: "unless-stopped"
+    command:
+      # - "--log.level=DEBUG"
+      - "--api"
+      - "--api.dashboard"
+      - "--api.insecure" # Don't do that in production
+      - "--metrics"
+      - "--metrics.prometheus.buckets=0.1,0.3,1.2,5.0"
+      - "--providers.docker"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik=true"
+      # Dashboard
+      - "traefik.http.routers.traefik.rule=Host(`traefik.example.com`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.middlewares.admin.basicauth.users=admin:password"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+    networks:
+      - devnet
