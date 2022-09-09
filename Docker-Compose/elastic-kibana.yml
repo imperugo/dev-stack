@@ -62,6 +62,8 @@ services:
     image: "elastichq/elasticsearch-hq"
     ports:
       - 4000:5000
+    environment:
+      - "HQ_DEFAULT_URL=http://elasticsearch:9200"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.elastichq.rule=Host(`elastichq.localhost`)"
